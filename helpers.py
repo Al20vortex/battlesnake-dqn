@@ -40,10 +40,10 @@ def get_state(game_state) -> torch.Tensor:
     for fruit in fruits:
         fruit_board[fruit['x'], fruit['y']] = 1
 
-    # concatenated_arrays = np.array([head_board, body_board, fruit_board])
-    # return torch.tensor(concatenated_arrays).float().reshape(1, 3, board_width, board_height)
-    concatenated_arrays = np.array([head_board, body_board], dtype=np.float)
-    return torch.tensor(concatenated_arrays, device=device, dtype=torch.float).reshape(1, 2, board_width, board_height)
+    concatenated_arrays = np.array([head_board, body_board, fruit_board])
+    return torch.tensor(concatenated_arrays).float().reshape(1, 3, board_width, board_height)
+    # concatenated_arrays = np.array([head_board, body_board], dtype=np.float)
+    # return torch.tensor(concatenated_arrays, device=device, dtype=torch.float).reshape(1, 2, board_width, board_height)
 
 
 def get_rewards_from_game_state(game_state, dead):
@@ -54,14 +54,14 @@ def get_rewards_from_game_state(game_state, dead):
     else:
         reward = 0.1
         fruit_board = game_state['board']['food']
-        # if prev_fruit_board and prev_fruit_board != fruit_board:
-        #     if len(fruit_board) <= len(prev_fruit_board):
-        #         reward += 0.9
+        if prev_fruit_board and prev_fruit_board != fruit_board:
+            if len(fruit_board) <= len(prev_fruit_board):
+                reward += 0.9
         prev_fruit_board = fruit_board
         return reward
 
 
-def get_safe_moves_state(game_state):
+def get_safe_moves_state(game_state): # unused
     # up down left right
     safe_moves = torch.tensor([1, 1, 1, 1])
     head = game_state["you"]["body"][0]

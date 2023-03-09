@@ -23,7 +23,6 @@ GAMMA = 0.99
 START_EPSILON = 0.1
 REDUCE_EPSILON_FACTOR = 0.99995
 MIN_EPSILON = 0.001
-NUM_INPUTS = 75
 MOVES = ['up', 'down', 'left', 'right']
 BATCH_SIZE = 32
 REPLAY_BUFFER_SIZE = 10000
@@ -38,7 +37,7 @@ class Agent:
         self.online_network.to(device)
         self.target_network.to(device)
         self.prev_action = 0
-        self.prev_state = torch.tensor(np.zeros((1, 2, 5, 5), dtype='f'), device=device)
+        self.prev_state = torch.tensor(np.zeros((1, 3, 11, 11), dtype='f'), device=device)
 
         self.replay_buffer = deque(maxlen=REPLAY_BUFFER_SIZE)
         self.epsilon = START_EPSILON
