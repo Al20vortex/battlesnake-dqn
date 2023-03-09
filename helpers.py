@@ -3,7 +3,7 @@ import torch
 
 prev_fruit_board = None
 
-device = torch.device('mps')
+device = torch.device('cpu')
 print(f"Using {device} device")
 
 def get_state(game_state) -> torch.Tensor:

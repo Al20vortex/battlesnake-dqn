@@ -10,16 +10,17 @@ import numpy as np
 
 # Get cpu or gpu device for training.
 # device = "cuda" if torch.cuda.is_available() else "cpu"
-device = torch.device('mps')
+device = torch.device('cpu')
 print(f"Using {device} device")
 
 # Set hyper parameters
-# START_LEARNING_RATE = 0.05
-START_LEARNING_RATE = .0001
+START_LEARNING_RATE = 0.05
+# START_LEARNING_RATE = .0001
 REDUCE_LR_FACTOR = 0.99995
 MIN_LEARNING_RATE = 0.0001
 GAMMA = 0.99
-START_EPSILON = 0.001
+# START_EPSILON = 0.001
+START_EPSILON = 0.1
 REDUCE_EPSILON_FACTOR = 0.99995
 MIN_EPSILON = 0.001
 NUM_INPUTS = 75
@@ -31,15 +32,14 @@ is_test = False
 
 class Agent:
     def __init__(self):
-        # necessary that 4 outputs
-        self.online_network = QNetworkModel(NUM_INPUTS, [512, 44], 4)
+        self.online_network = QNetworkModel()
         self.load_model_if_found()
         self.target_network = copy.deepcopy(self.online_network)
         self.online_network.to(device)
         self.target_network.to(device)
         self.prev_action = 0
-        # woo!
         self.prev_state = torch.tensor(np.zeros((1, 2, 5, 5), dtype='f'), device=device)
+
         self.replay_buffer = deque(maxlen=REPLAY_BUFFER_SIZE)
         self.epsilon = START_EPSILON
         self.epoch = 0
@@ -47,6 +47,9 @@ class Agent:
         self.best_score = 0
         self.cumulative_score = 0
         self.lr = START_LEARNING_RATE
+        self.loss_fn = nn.MSELoss()
+        self.optimizer = torch.optim.RAdam(self.online_network.parameters(), lr=self.lr)
+
 
     def load_model_if_found(self):
         try:
@@ -76,7 +79,7 @@ class Agent:
         self.score += rewards
         self.replay_buffer.append((self.prev_state, self.prev_action, rewards, state, dead))
         if not dead:
-            del self.prev_state
+            # del self.prev_state
             # because prev_state is same when dead
             self.prev_state = state
         self.replay(game_state['turn'])
@@ -92,7 +95,7 @@ class Agent:
                 self.lr = MIN_LEARNING_RATE
 
             if self.epoch > 0 and self.epoch % 10 == 0:
-                del self.target_network
+                # del self.target_network
                 self.target_network = copy.deepcopy(self.online_network).to(device)
                 torch.save(self.target_network.state_dict(), 'saved_model.pt')
             if is_test:
@@ -126,6 +129,7 @@ class Agent:
         prev_states, prev_actions, rewards, states, deads = self.sample_experiences(sample_size)
         q_values = self.online_network(states.to(device))
         targets = self.target_network(prev_states.to(device))
+        target_batch = None
         for i in range(0, sample_size):
             max_q_value = torch.max(q_values[i]).item()
             target = torch.clone(targets[i]).to(device)
@@ -140,7 +144,7 @@ class Agent:
                 target_batch = target
             else:
                 target_batch = torch.cat((target_batch, target))
-            del target
+            # del target
         self.train(q_values, target_batch)
         del targets
         del states
@@ -149,21 +153,16 @@ class Agent:
         del deads
         del prev_states
         del q_values
-
+        del target_batch
+        torch.cuda.empty_cache()
     def train(self, q_values, target_batch):
         torch.autograd.set_detect_anomaly(True)
         self.online_network.train()
-        loss_fn = nn.MSELoss()
-        optimizer = torch.optim.RAdam(self.online_network.parameters(), lr=self.lr)
-        loss = loss_fn(q_values, target_batch)
-        optimizer.zero_grad()
+        loss = self.loss_fn(q_values, target_batch)
+        self.optimizer.zero_grad()
         loss.backward()
-        optimizer.step()
-        if self.epoch % 100 == 0:
-            print("loss:", loss)
+        self.optimizer.step()
         del loss
-        del q_values
-        del target_batch
 
     def sample_experiences(self, sample_size):
         first = True
