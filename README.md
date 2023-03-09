@@ -1,7 +1,7 @@
 # battlesnake-dqn (WIP)
 
 
-This is my work in progress project making a deep q-learning agent for the Battlesnake competition. Currently the agent uses a simplified view of the world and ignores fruit, to try and survive. The agent currently can't compete with other agents, nor are there obstacles.
+This is my work in progress project making a deep q-learning agent for the Battlesnake competition. The agent currently can't compete with other agents, nor are there obstacles, it can only try and survive and eat fruit to grow.
 
 Todo list:
 1. Overhaul how we save models to restart training from last session
