@@ -1,7 +1,7 @@
 # battlesnake-dqn (WIP)
 
 
-This is my work in progress attempt at making a deep q-learning agent for the Battlesnake competition. Currently the agent uses a simplified view of the world and ignores fruit, to try and survive. The agent currently can't compete with other agents, nor are there obstacles.
+This is my work in progress project making a deep q-learning agent for the Battlesnake competition. Currently the agent uses a simplified view of the world and ignores fruit, to try and survive. The agent currently can't compete with other agents, nor are there obstacles.
 
 Todo list:
 1. There's a memory leak currently preventing us from training too many iterations.
